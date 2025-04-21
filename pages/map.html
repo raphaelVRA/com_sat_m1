@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte de la qualité de l'air</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Menu principal -->
+    <div class="navbar">
+        <div class="navbar-links">
+            <a href="index.html">Selection</a>
+            <a href="map.html" class="active">Carte</a>
+            <a href="dashboard.html">Panneau de Contrôle</a>
+            <a href="about.html" >À Propos</a>
+        </div>
+    </div>
+
+    <h1>Carte de la qualité de l'air</h1>
+    <div id="map"></div>
+
+    <script>
+        // Centré sur la Forêt de Fontainebleau
+        const map = L.map('map').setView([48.4041, 2.7015], 12);
+
+        // Tuile OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Fonction pour générer des points aléatoires dans la forêt
+        function generateRandomPoints(numPoints, latRange, lonRange) {
+            const points = [];
+            for (let i = 0; i < numPoints; i++) {
+                const lat = latRange[0] + Math.random() * (latRange[1] - latRange[0]);
+                const lon = lonRange[0] + Math.random() * (lonRange[1] - lonRange[0]);
+                const temp = Math.random() * 0.5 + 0.5;  // Température entre 0.5 et 1.0
+                points.push([lat, lon, temp]);
+            }
+            return points;
+        }
+
+        const latRange = [48.37, 48.47];  // Latitude entre 48.37 et 48.47
+        const lonRange = [2.65, 2.75];   // Longitude entre 2.65 et 2.75
+
+        // Générer 100 points aléatoires dans la forêt
+        let temperaturePoints = generateRandomPoints(100, latRange, lonRange);
+
+        const heat = L.heatLayer(temperaturePoints.map(p => [p[0], p[1], p[2]]), {
+            radius: 80,  // Taille des cercles
+            blur: 20,    // Flou
+            maxZoom: 17,
+            gradient: {
+                0.4: 'yellow',
+                0.6: 'orange',
+                0.8: 'orangered',
+                1.0: 'red'
+            }
+        }).addTo(map);
+
+        // Fonction pour mettre à jour la température sans déplacer les points
+        function updateTemperatureValues() {
+            // Met à jour seulement la température des points, sans changer leur position
+            temperaturePoints = temperaturePoints.map(point => {
+                return [point[0], point[1], Math.random() * 0.5 + 0.5]; // Change la température uniquement
+            });
+
+            // Met à jour la heatmap avec les nouvelles températures
+            heat.setLatLngs(temperaturePoints);
+        }
+
+        // Mise à jour des températures toutes les 5 secondes
+        setInterval(updateTemperatureValues, 5000);
+
+        // Ajuster la taille des cercles en fonction du niveau de zoom
+        map.on('zoomend', function() {
+            const zoomLevel = map.getZoom();
+            const newRadius = Math.max(10, 80 - zoomLevel * 2); // Réduit la taille des cercles à mesure qu'on dézoome
+            heat.setOptions({
+                radius: newRadius
+            });
+        });
+
+    </script>
+
+</body>
+</html>

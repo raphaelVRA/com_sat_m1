@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>À Propos du Projet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <!-- Menu principal -->
+    <div class="navbar">
+        <div class="navbar-links">
+            <a href="index.html">Sélection</a>
+            <a href="map.html">Carte</a>
+            <a href="dashboard.html">Panneau de Contrôle</a>
+            <a href="about.html" class="active">À Propos</a>
+        </div>
+    </div>
+
+    <h1>À Propos du Projet</h1>
+    
+    <div class="about-container">
+        <div class="about-section">
+            <h2>Présentation du Projet</h2>
+            <p>Ce projet a été réalisé dans le cadre de notre formation d'ingénieur à l'ISEN Nantes, durant notre année de Master 1. Il s'agit d'un projet étudiant développé sur une période de 9 semaines.</p>
+            
+            <div class="team-info">
+                <h3>Équipe du Projet</h3>
+                <div class="team-members">
+                    <div class="team-member">
+                        <div class="member-avatar">VR</div>
+                        <div class="member-info">
+                            <h4>VRAIN Raphaël</h4>
+                            <p>Étudiant M1 - ISEN Nantes</p>
+                        </div>
+                    </div>
+                    <div class="team-member">
+                        <div class="member-avatar">RA</div>
+                        <div class="member-info">
+                            <h4>ROUTHIAU Anthelme</h4>
+                            <p>Étudiant M1 - ISEN Nantes</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="supervisor">
+                    <strong>Professeur référent :</strong> Maher Jridi<br>
+                    <em>Rôle équivalent à un chef de projet</em>
+                </p>
+            </div>
+        </div>
+        
+        <div class="about-section">
+            <h2>Objectifs du Projet</h2>
+            <p>Ce projet vise à mettre en place une application environnementale utilisant de la communication par satellite.</p>
+            
+            <div class="objectives-list">
+                <div class="objective-item">
+                    <div class="objective-icon">📊</div>
+                    <div class="objective-content">
+                        <h4>Collecte de Données Environnementales</h4>
+                        <p>Mesure précise des paramètres environnementaux comme la température, l'humidité, la pression et l'altitude</p>
+                    </div>
+                </div>
+                
+                <div class="objective-item">
+                    <div class="objective-icon">🗺️</div>
+                    <div class="objective-content">
+                        <h4>Visualisation Géographique</h4>
+                        <p>Affichage cartographique des données collectées pour faciliter l'analyse spatiale</p>
+                    </div>
+                </div>
+                
+                <div class="objective-item">
+                    <div class="objective-icon">📱</div>
+                    <div class="objective-content">
+                        <h4>Interface Web Responsive</h4>
+                        <p>Développement d'une interface utilisateur intuitive et accessible sur différents appareils</p>
+                    </div>
+                </div>
+                
+                <div class="objective-item">
+                    <div class="objective-icon">⚠️</div>
+                    <div class="objective-content">
+                        <h4>Système d'Alerte</h4>
+                        <p>Mise en place d'indicateurs de risque pour la prévention (incendies, qualité de l'air)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="about-section">
+            <h2>Technologies Utilisées</h2>
+            <div class="tech-stack">
+                <div class="tech-category">
+                    <h3>Frontend</h3>
+                    <div class="tech-items">
+                        <div class="tech-item">HTML5</div>
+                        <div class="tech-item">CSS3</div>
+                        <div class="tech-item">JavaScript</div>
+                        <div class="tech-item">jQuery</div>
+                        <div class="tech-item">Chart.js</div>
+                    </div>
+                </div>
+                
+                <div class="tech-category">
+                    <h3>Backend</h3>
+                    <div class="tech-items">
+                        <div class="tech-item">PHP</div>
+                        <div class="tech-item">WebSocket</div>
+                        <div class="tech-item">Node-RED</div>
+                    </div>
+                </div>
+                
+                <div class="tech-category">
+                    <h3>Cartographie</h3>
+                    <div class="tech-items">
+                        <div class="tech-item">Leaflet</div>
+                        <div class="tech-item">OpenStreetMap</div>
+                    </div>
+                </div>
+                
+                <div class="tech-category">
+                    <h3>Matériel</h3>
+                    <div class="tech-items">
+                        <div class="tech-item">Capteurs IoT</div>
+                        <div class="tech-item">Module WiFi</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="about-section">
+            <h2>Fonctionnalités Principales</h2>
+            <div class="features">
+                <div class="feature">
+                    <img src="images/icone_temperature.png" alt="Température">
+                    <h3>Suivi de Température</h3>
+                    <p>Affichage en temps réel des variations de température avec historique</p>
+                </div>
+                
+                <div class="feature">
+                    <img src="images/icone_humidite.png" alt="Humidité">
+                    <h3>Mesure d'Humidité</h3>
+                    <p>Surveillance du taux d'humidité pour prévention des risques</p>
+                </div>
+                
+                <div class="feature">
+                    <img src="images/icone_pression.png" alt="Pression">
+                    <h3>Pression Atmosphérique</h3>
+                    <p>Mesure précise de la pression atmosphérique</p>
+                </div>
+                
+                <div class="feature">
+                    <img src="images/icone_altitude.png" alt="Altitude">
+                    <h3>Données d'Altitude</h3>
+                    <p>Suivi des variations d'altitude pour les mesures topographiques</p>
+                </div>
+
+                <div class="feature">
+                    <img src="images/qualite_air.png" alt="Qualité de l'air">
+                    <h3>Qualité de l'air</h3>
+                    <p>Suivi des variations de qualité de l'air</p>
+                </div>
+
+                <div class="feature">
+                    <img src="images/icendie.webp" alt="Incendie">
+                    <h3>Risque d'incendie</h3>
+                    <p>Suivi des risque d'incendie en fonction de la température de de l'humidité.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="about-section">
+            <h2>Contexte Pédagogique</h2>
+            <p>Ce projet s'inscrit dans une démarche pédagogique visant à simuler un environnement professionnel réel. Les étudiants ont été amenés à:</p>
+            <ul class="context-list">
+                <li>Définir et planifier les différentes phases du projet</li>
+                <li>Collaborer efficacement en équipe</li>
+                <li>Gérer les contraintes techniques et temporelles</li>
+                <li>Présenter et défendre leurs choix techniques</li>
+                <li>Documenter l'ensemble du processus de développement</li>
+            </ul>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-point"></div>
+                    <div class="timeline-content">
+                        <h4>Semaine 1-2</h4>
+                        <p>Définition du cahier des charges et planification</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-point"></div>
+                    <div class="timeline-content">
+                        <h4>Semaine 3-5</h4>
+                        <p>Développement du prototype et des capteurs</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-point"></div>
+                    <div class="timeline-content">
+                        <h4>Semaine 6-8</h4>
+                        <p>Développement de l'interface web et intégration</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-point"></div>
+                    <div class="timeline-content">
+                        <h4>Semaine 9</h4>
+                        <p>Finalisation et présentation du projet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="contact-section">
+        <h2>Contact</h2>
+        <p>Pour plus d'informations sur ce projet, vous pouvez contacter:</p>
+        <div class="contact-info">
+            <div class="contact-item">
+                <div class="contact-icon">📧</div>
+                <div class="contact-text">raphaël.vrain@isen-ouest.yncrea.fr</div>
+            </div>
+            <div class="contact-item">
+                <div class="contact-icon">📧</div>
+                <div class="contact-text">anthelme.routhiau@isen-ouest.yncrea.fr</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

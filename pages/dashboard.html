@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Temps Réel</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <!-- Menu principal -->
+    <div class="navbar">
+        <div class="navbar-links">
+            <a href="index.html">Selection</a>
+            <a href="map.html" >Carte</a>
+            <a href="dashboard.html" class="active">Panneau de Contrôle</a>
+            <a href="about.html" >À Propos</a>
+        </div>
+    </div>
+
+    <!-- Loader sous la navbar -->
+    <div id="loader">
+        <div class="loader-content">
+            <p class="loader-text">Connexion au module par satellite...</p>
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
+        </div>
+    </div>    
+
+    <h1> Dashboard en Temps Réel</h1>
+    <p id="status">🔴 En attente de connexion ...</p>
+
+    <div class="dashboard">
+        <div class="dashboard-item">
+            <h3>Température</h3>
+            <canvas id="miniTempChart"></canvas>
+        </div>
+        <div class="dashboard-item">
+            <h3>Pression</h3>
+            <canvas id="miniPressionChart"></canvas>
+        </div>
+        <div class="dashboard-item">
+            <h3>Humidité</h3>
+            <canvas id="miniHumiditeChart"></canvas>
+        </div>
+        <div class="dashboard-item">
+            <h3>Altitude</h3>
+            <canvas id="miniAltitudeChart"></canvas>
+        </div>
+
+        <!-- Cases des valeurs -->
+        <div class="dashboard-item">
+            <h3>Valeurs Actuelles</h3>
+            <p><strong>Température :</strong> <span id="valTemp">--</span> °C</p>
+            <p><strong>Pression :</strong> <span id="valPression">--</span> hPa</p>
+            <p><strong>Humidité :</strong> <span id="valHumidite">--</span> %</p>
+            <p><strong>Altitude :</strong> <span id="valAltitude">--</span> m</p>
+        </div>
+
+        <!-- Case risque d'incendie avec spinner -->
+        <div class="dashboard-item">
+            <h3>Risque d'Incendie</h3>
+            <div id="fireRisk" class="spinner-container">
+                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+            </div>
+        </div>
+
+        <!-- Case qualité de l'air avec spinner -->
+        <div class="dashboard-item">
+            <h3>Qualité de l'air</h3>
+            <div id="airQuality" class="spinner-container">
+                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        window.addEventListener("load", function () {
+            // Générer un temps aléatoire entre 1.5 et 4 secondes
+            const randomDuration = Math.random() * (4 - 1.5) + 1.5;
+    
+            // Appliquer ce temps à l'animation de la barre
+            const progressBar = document.querySelector('.progress');
+            progressBar.style.animationDuration = randomDuration + 's';
+    
+            // Masquer le loader après le temps de l'animation
+            setTimeout(() => {
+                document.getElementById("loader").style.display = "none";
+            }, randomDuration * 1000); // Temps en millisecondes
+        });
+    </script>
+    
+
+    <script>
+        let miniTempChart, miniPressionChart, miniHumiditeChart, miniAltitudeChart;
+        let temperatureData = [];
+        let pressionData = [];
+        let humiditeData = [];
+        let altitudeData = [];
+        let qualiteData = [];
+        let timestamps = [];
+
+        // Création de graphique vide
+        function createEmptyChart(ctx, label) {
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        data: [],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { beginAtZero: false },
+                        y: { beginAtZero: false }
+                    }
+                }
+            });
+        }
+
+        // Calcul risque d'incendie
+        function calculateFireRisk(temperature, humidity) {
+            if (temperature > 30 && humidity < 35) {
+                return "🔥 Risque ÉLEVÉ ";
+            } else if (temperature > 25 && humidity < 40) {
+                return "⚠️ Risque MODÉRÉ";
+            } else {
+                return "✅ Risque FAIBLE";
+            }
+        }
+
+        // Calcul qualité de l'air
+        function getAirQualityMessage(value) {
+            if (value > 700) {
+                return "❌ Pollution TRÈS IMPORTANTE";
+            } else if (value > 300) {
+                return "⚠️ Pollution FAIBLE";
+            } else {
+                return "✅ Air frais";
+            }
+        }
+
+        // Initialisation des graphiques et WebSocket
+        document.addEventListener("DOMContentLoaded", function() {
+            miniTempChart = createEmptyChart(document.getElementById('miniTempChart').getContext('2d'), 'Température');
+            miniPressionChart = createEmptyChart(document.getElementById('miniPressionChart').getContext('2d'), 'Pression');
+            miniHumiditeChart = createEmptyChart(document.getElementById('miniHumiditeChart').getContext('2d'), 'Humidité');
+            miniAltitudeChart = createEmptyChart(document.getElementById('miniAltitudeChart').getContext('2d'), 'Altitude');
+
+            // Connexion WebSocket
+            const socket = new WebSocket("ws://localhost:1880/ws");
+
+            socket.onopen = function() {
+                console.log("Connexion WebSocket établie");
+                document.getElementById('status').textContent = "🟢 Connecté";
+            };
+
+            socket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log("Données reçues :", data);
+                    updateDashboard(data);
+                } catch (error) {
+                    console.error("Erreur lors du traitement des données :", error);
+                }
+            };
+
+            socket.onerror = function(error) {
+                console.error("Erreur WebSocket :", error);
+                document.getElementById('status').textContent = "⚠️ Erreur";
+            };
+
+            socket.onclose = function() {
+                console.log("WebSocket déconnecté");
+                document.getElementById('status').textContent = "🔴 Déconnecté";
+            };
+        });
+
+        // Mise à jour des graphiques et valeurs
+        function updateDashboard(data) {
+            if (!data || !Array.isArray(data) || data.length < 5) {
+                console.error("Données invalides reçues :", data);
+                return;
+            }
+
+            const now = new Date().toLocaleTimeString();
+            timestamps.push(now);
+            temperatureData.push(data[0]);
+            pressionData.push(data[1]);
+            altitudeData.push(data[2]);
+            humiditeData.push(data[3]);
+            qualiteData.push(data[4]);
+
+            // On garde uniquement les 10 dernières valeurs
+            if (timestamps.length > 10) {
+                timestamps.shift();
+                temperatureData.shift();
+                pressionData.shift();
+                altitudeData.shift();
+                humiditeData.shift();
+                qualiteData.shift();
+            }
+
+            // Mise à jour des graphiques
+            miniTempChart.data.labels = timestamps;
+            miniTempChart.data.datasets[0].data = temperatureData;
+            miniTempChart.update();
+
+            miniPressionChart.data.labels = timestamps;
+            miniPressionChart.data.datasets[0].data = pressionData;
+            miniPressionChart.update();
+
+            miniHumiditeChart.data.labels = timestamps;
+            miniHumiditeChart.data.datasets[0].data = humiditeData;
+            miniHumiditeChart.update();
+
+            miniAltitudeChart.data.labels = timestamps;
+            miniAltitudeChart.data.datasets[0].data = altitudeData;
+            miniAltitudeChart.update();
+
+            // Mise à jour des valeurs numériques
+            document.getElementById("valTemp").textContent = data[0].toFixed(2);
+            document.getElementById("valPression").textContent = data[1].toFixed(2);
+            document.getElementById("valHumidite").textContent = data[3].toFixed(2);
+            document.getElementById("valAltitude").textContent = data[2].toFixed(2);
+
+            // Mise à jour du risque d'incendie - remplace le spinner par le texte
+            document.getElementById("fireRisk").innerHTML = calculateFireRisk(data[0], data[3]);
+            // Suppression de la classe spinner-container une fois les données chargées
+            document.getElementById("fireRisk").classList.remove("spinner-container");
+
+            // Mise à jour de la qualité de l'air - remplace le spinner par le texte
+            document.getElementById("airQuality").innerHTML = getAirQualityMessage(data[4]);
+            // Suppression de la classe spinner-container une fois les données chargées
+            document.getElementById("airQuality").classList.remove("spinner-container");
+        }
+    </script>
+</body>
+</html>

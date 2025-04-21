@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphique Altitude en Temps Réel</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Mise à jour de la source de données en fonction de la base de données sélectionnée
+        function updateDataSources() {
+            const selectedDatabase = document.getElementById('databaseSelect').value;
+            const dataSource = selectedDatabase === 'base1' ? 'data.php' : 'data2.php';
+            updateChart(dataSource);
+        }
+
+        // Mise à jour du graphique 
+        function updateChart(dataSource) {
+            $.ajax({
+                url: `http://localhost/Site2/data/${dataSource}`,
+                method: 'GET',
+                success: function (data) {
+                    console.log("Données reçues :", data);
+
+                    if (data.length > 0) {
+                        let labels = data.map(row => {
+                            const date = new Date(row.timestamp);
+                            return date.toLocaleDateString('fr-FR', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit'
+                            });
+                        });
+                        let altitudes = data.map(row => row.altitude);
+
+                        altitudeChart.data.labels = labels;
+                        altitudeChart.data.datasets[0].data = altitudes;
+                        altitudeChart.update();
+                    } else {
+                        console.warn("Aucune donnée reçue !");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Erreur AJAX :", error);
+                }
+            });
+        }
+
+        // Initialisation du graphique lorsque le document est prêt
+        $(document).ready(function () {
+            let ctx = document.getElementById('altitudeChart').getContext('2d');
+            window.altitudeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Altitude (m)',
+                        borderColor: 'green',
+                        backgroundColor: 'rgba(0, 255, 0, 0.2)',
+                        data: [],
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Heure' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Altitude (m)' }
+                        }
+                    }
+                }
+            });
+
+            updateDataSources();
+        });
+    </script>
+</head>
+<body>
+    <!-- Menu principal -->
+    <div class="navbar">
+        <div class="navbar-links">
+            <a href="index.html" class="active">Données</a>
+            <a href="map.html">Carte</a>
+            <a href="dashboard.html">Panneau de Contrôle</a>
+            <a href="about.html" >À Propos</a>
+        </div>
+        <select id="databaseSelect" onchange="updateDataSources()">
+            <option value="base1">Module 1</option>
+            <option value="base2">Module 2</option>
+        </select>
+    </div>
+
+    
+
+    <h2>Évolution de l'Altitude</h2>
+    <canvas id="altitudeChart"></canvas>
+
+    <!-- Bouton retour -->
+    <div class="back-button-container">
+        <a href="index.html"><button class="back-button">Retour à la selection des données</button></a>
+    </div>
+</body>
+</html>
