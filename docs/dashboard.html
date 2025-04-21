@@ -156,7 +156,7 @@
             miniAltitudeChart = createEmptyChart(document.getElementById('miniAltitudeChart').getContext('2d'), 'Altitude');
 
             // Connexion WebSocket
-            const socket = new WebSocket("ws://localhost:1880/ws");
+            const socket = new WebSocket("https://3135-2a02-8440-7149-7145-41a2-4110-b08e-80df.ngrok-free.app");
 
             socket.onopen = function() {
                 console.log("Connexion WebSocket établie");
