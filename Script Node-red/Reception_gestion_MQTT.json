@@ -1,0 +1,846 @@
+[
+    {
+        "id": "ee7b0e1cfa698443",
+        "type": "tab",
+        "label": "[Jostin] LEAT test Unica mqtt client ",
+        "disabled": false,
+        "info": "It receives data from EchoStar whixh was sent to the Satellite\r\n\r\n"
+    },
+    {
+        "id": "aedad7e9c8c313cf",
+        "type": "mqtt in",
+        "z": "ee7b0e1cfa698443",
+        "name": "Team_26",
+        "topic": "cma/echo/119e32/uplink",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 120,
+        "y": 80,
+        "wires": [
+            [
+                "851b774caab5707f",
+                "ccaa13e957f12c27"
+            ]
+        ]
+    },
+    {
+        "id": "851b774caab5707f",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "function 2",
+        "func": "if (msg.payload) {\n    try {\n        // Décoder la chaîne Base64\n        let decodedText = Buffer.from(msg.payload.frmPayload, 'base64').toString('utf-8');\n\n        // Ignorer les quatre premiers caractères\n        decodedText = decodedText.substring(4);\n\n        // Diviser la chaîne en utilisant la virgule comme séparateur\n        let values = decodedText.split(',');\n\n        // Stocker les valeurs sous forme de variables\n        let temperature = parseFloat(values[0]);\n        let pression = parseFloat(values[1]);\n        let altitude = parseFloat(values[2]);\n        let humidite = parseFloat(values[3]);\n        let qualite = parseFloat(values[4]);\n\n        // Définir la requête SQL dans msg.topic (ATTENTION : PAS msg.payload)\n        msg.topic = \"INSERT INTO mesures (temperature, pression, altitude, humidite, timestamp) VALUES (?, ?, ?, ?, NOW())\";\n\n        // Placer les valeurs dans msg.payload sous forme de tableau (paramètres pour SQL)\n        msg.payload = [temperature, pression, altitude, humidite, qualite];\n    } catch (error) {\n        msg.payload = \"Erreur de décodage Base64 : \" + error.message;\n    }\n} else {\n    msg.payload = \"Aucune entrée fournie\";\n}\n\n// Retourner l'objet message\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 80,
+        "wires": [
+            [
+                "8a97ad9a1fd0db2d",
+                "d3a9050ed4912cac",
+                "8456d69b1759db98"
+            ]
+        ]
+    },
+    {
+        "id": "8a97ad9a1fd0db2d",
+        "type": "debug",
+        "z": "ee7b0e1cfa698443",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 440,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "d3a9050ed4912cac",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "1e59c2bc3dbb5b44",
+        "name": "Db_Capteurs",
+        "x": 640,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "send_telegram",
+        "type": "telegram sender",
+        "z": "ee7b0e1cfa698443",
+        "name": "Envoyer Alerte Telegram",
+        "bot": "ff64b57162a87276",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1150,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6cec9c614360248e",
+        "type": "telegram receiver",
+        "z": "ee7b0e1cfa698443",
+        "name": "Réception Telegram",
+        "bot": "ff64b57162a87276",
+        "saveDataDir": "",
+        "filterCommands": true,
+        "x": 210,
+        "y": 640,
+        "wires": [
+            [
+                "2a9dbda2d604c6a9"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "0fcc0486b70d3334",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "1e59c2bc3dbb5b44",
+        "name": "Récupérer Température",
+        "x": 1090,
+        "y": 400,
+        "wires": [
+            [
+                "852fa8409f35cacc"
+            ]
+        ]
+    },
+    {
+        "id": "852fa8409f35cacc",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "Format Réponse Température",
+        "func": "if (msg.payload.length > 0) {\n    let temperature = msg.payload[0].temperature;\n    msg.payload = {\n        chatId: msg.originalMessage.chat.id,\n        type: \"message\",\n        content: `🌡 Température actuelle : ${temperature}°C`\n    };\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1350,
+        "y": 400,
+        "wires": [
+            [
+                "372a9d4a9fde302e"
+            ]
+        ]
+    },
+    {
+        "id": "372a9d4a9fde302e",
+        "type": "telegram sender",
+        "z": "ee7b0e1cfa698443",
+        "name": "Répondre Telegram",
+        "bot": "ff64b57162a87276",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1720,
+        "y": 700,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0d50a379591ee171",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "SQL temperature",
+        "func": "msg.topic = \"SELECT temperature FROM mesures ORDER BY timestamp DESC LIMIT 1;\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 400,
+        "wires": [
+            [
+                "0fcc0486b70d3334"
+            ]
+        ]
+    },
+    {
+        "id": "2a9dbda2d604c6a9",
+        "type": "switch",
+        "z": "ee7b0e1cfa698443",
+        "name": "Commandes",
+        "property": "payload.content",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "emperature ",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "empérature",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "ression",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "ltitude",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "umidite",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "umidité",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "isque",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "otal",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 9,
+        "x": 470,
+        "y": 640,
+        "wires": [
+            [
+                "0d50a379591ee171"
+            ],
+            [
+                "0d50a379591ee171"
+            ],
+            [
+                "e4d45dec30b0e85f"
+            ],
+            [
+                "2cfe9e732c34b823"
+            ],
+            [
+                "230f3d9eefb8f3ea"
+            ],
+            [
+                "230f3d9eefb8f3ea"
+            ],
+            [
+                "88723b554edd8188"
+            ],
+            [
+                "0d50a379591ee171",
+                "e4d45dec30b0e85f",
+                "2cfe9e732c34b823",
+                "230f3d9eefb8f3ea",
+                "88723b554edd8188"
+            ],
+            [
+                "9a770ae84a8456c6"
+            ]
+        ]
+    },
+    {
+        "id": "0da322d63046c11e",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "1e59c2bc3dbb5b44",
+        "name": "Récupérer pression",
+        "x": 1080,
+        "y": 460,
+        "wires": [
+            [
+                "74dfa62960086a80"
+            ]
+        ]
+    },
+    {
+        "id": "74dfa62960086a80",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "Format Réponse Pression",
+        "func": "if (msg.payload.length > 0) {\n    let pression = msg.payload[0].pression;\n    msg.payload = {\n        chatId: msg.originalMessage.chat.id,\n        type: \"message\",\n        content: `📡 Pression actuelle : ${pression}hPa`\n    };\n    return msg;\n}\nreturn null;\n\n\n\n        ",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1340,
+        "y": 460,
+        "wires": [
+            [
+                "372a9d4a9fde302e"
+            ]
+        ]
+    },
+    {
+        "id": "e4d45dec30b0e85f",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "SQL pression",
+        "func": "msg.topic = \"SELECT pression FROM mesures ORDER BY timestamp DESC LIMIT 1;\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 460,
+        "wires": [
+            [
+                "0da322d63046c11e"
+            ]
+        ]
+    },
+    {
+        "id": "3be96369a9279109",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "1e59c2bc3dbb5b44",
+        "name": "Récupérer altitude",
+        "x": 1070,
+        "y": 520,
+        "wires": [
+            [
+                "a31ea5aff43e7d26"
+            ]
+        ]
+    },
+    {
+        "id": "a31ea5aff43e7d26",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "Format Réponse Altitude",
+        "func": "if (msg.payload.length > 0) {\n    let altitude = msg.payload[0].altitude;\n    msg.payload = {\n        chatId: msg.originalMessage.chat.id,\n        type: \"message\",\n        content: `⛰ Altitude actuelle : ${altitude} mètres`\n    };\n    return msg;\n}\nreturn null;\n\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1330,
+        "y": 520,
+        "wires": [
+            [
+                "372a9d4a9fde302e"
+            ]
+        ]
+    },
+    {
+        "id": "2cfe9e732c34b823",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "SQL altitude",
+        "func": "msg.topic = \"SELECT altitude FROM mesures ORDER BY timestamp DESC LIMIT 1;\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 520,
+        "wires": [
+            [
+                "3be96369a9279109"
+            ]
+        ]
+    },
+    {
+        "id": "c322dc8692bf4020",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "1e59c2bc3dbb5b44",
+        "name": "Récupérer humidité",
+        "x": 1080,
+        "y": 580,
+        "wires": [
+            [
+                "c054047a2cb21794"
+            ]
+        ]
+    },
+    {
+        "id": "c054047a2cb21794",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "Format Réponse Humidité",
+        "func": "if (msg.payload.length > 0) {\n    let humidite = msg.payload[0].humidite;\n    msg.payload = {\n        chatId: msg.originalMessage.chat.id,\n        type: \"message\",\n        content: `💧 Humidité actuelle : ${humidite}%`\n    };\n    return msg;\n}\nreturn null;\n\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1340,
+        "y": 580,
+        "wires": [
+            [
+                "372a9d4a9fde302e"
+            ]
+        ]
+    },
+    {
+        "id": "230f3d9eefb8f3ea",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "SQL humidité",
+        "func": "msg.topic = \"SELECT humidite FROM mesures ORDER BY timestamp DESC LIMIT 1;\";\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 580,
+        "wires": [
+            [
+                "c322dc8692bf4020"
+            ]
+        ]
+    },
+    {
+        "id": "b24b8ea6ee0efe1b",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "1e59c2bc3dbb5b44",
+        "name": "Récupérer risque",
+        "x": 1070,
+        "y": 640,
+        "wires": [
+            [
+                "3c7ec394b76fc54a"
+            ]
+        ]
+    },
+    {
+        "id": "3c7ec394b76fc54a",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "Format Réponse Risque",
+        "func": "// Vérifie si la base de données a retourné un résultat\nif (msg.payload.length > 0) {\n    let temperature = msg.payload[0].temperature;\n    let humidite = msg.payload[0].humidite;\n\n    let response;\n    if (temperature < 25 || humidite > 50) {\n        response = \"✅ Risque d'incendie : NUL\";\n    } else if ((temperature >= 25 && temperature < 35) && (humidite >= 30 && humidite <= 50)) {\n        response = \"⚠️ Risque d'incendie : MODÉRÉ\";\n    } else if (temperature >= 35 || humidite < 30) {\n        response = \"🔥 Risque d'incendie : FORT\";\n    } else {\n        response = \"⚠️ Impossible de calculer le risque.\";\n    }\n\n    // Prépare le message Telegram\n    msg.payload = {\n        chatId: msg.originalMessage.chat.id, // Conserve l'ID du chat Telegram\n        type: \"message\",\n        content: response\n    };\n\n    return msg;\n}\n\n// Si aucune donnée n'est trouvée\nreturn null;\n\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1330,
+        "y": 640,
+        "wires": [
+            [
+                "372a9d4a9fde302e"
+            ]
+        ]
+    },
+    {
+        "id": "88723b554edd8188",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "SQL risque",
+        "func": "msg.topic = \"SELECT temperature, humidite FROM mesures ORDER BY timestamp DESC LIMIT 1;\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 640,
+        "wires": [
+            [
+                "b24b8ea6ee0efe1b"
+            ]
+        ]
+    },
+    {
+        "id": "953085e9edf46e54",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "Preparation message",
+        "func": "if (msg.payload.length > 0) {\n    msg.payload = {\n    chatId: 6853151262,  // Remplace par ton Chat ID Telegram\n    type: \"message\",\n    content: \"🚨 Risque d'incendie élevé !\"\n    };\n    return msg;\n}\nelse{\n    return null;\n}\n\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 340,
+        "wires": [
+            [
+                "send_telegram"
+            ]
+        ]
+    },
+    {
+        "id": "a23e2c86564f8eac",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "Vérification paramètres",
+        "func": "// Vérifie si la base de données a retourné un résultat\nif (msg.payload.length > 0) {\n    let temperature = msg.payload[0].temperature;\n    let humidite = msg.payload[0].humidite;\n    if (temperature < 25 || humidite > 50) {\n        return null;\n    } else if ((temperature >= 25 && temperature < 35) && (humidite >= 30 && humidite <= 50)) {\n        return null;\n    } else if (temperature >= 30 || humidite < 30) {\n        return msg;\n    }\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 340,
+        "wires": [
+            [
+                "953085e9edf46e54"
+            ]
+        ]
+    },
+    {
+        "id": "c736f04bdf83158e",
+        "type": "inject",
+        "z": "ee7b0e1cfa698443",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 340,
+        "wires": [
+            [
+                "47b4ac80e8390698"
+            ]
+        ]
+    },
+    {
+        "id": "47b4ac80e8390698",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "SQL risque",
+        "func": "msg.topic = \"SELECT temperature, humidite FROM mesures ORDER BY timestamp DESC LIMIT 1;\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 340,
+        "wires": [
+            [
+                "056cba5d09abcc7e",
+                "fbb525ce588dc41f"
+            ]
+        ]
+    },
+    {
+        "id": "056cba5d09abcc7e",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "1e59c2bc3dbb5b44",
+        "name": "Récupérer risque",
+        "x": 470,
+        "y": 320,
+        "wires": [
+            [
+                "a23e2c86564f8eac"
+            ]
+        ]
+    },
+    {
+        "id": "9a770ae84a8456c6",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "Format Réponse Erreur",
+        "func": "msg.payload = {\n    chatId: msg.originalMessage.chat.id,\n    type: \"message\",\n    content: `❌ Commande non reconnue`\n};\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1090,
+        "y": 700,
+        "wires": [
+            [
+                "372a9d4a9fde302e"
+            ]
+        ]
+    },
+    {
+        "id": "34f9a0cbd7137ecb",
+        "type": "mqtt in",
+        "z": "ee7b0e1cfa698443",
+        "name": "Team_21",
+        "topic": "cma/echo/11623a/uplink",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "4c1df0f0cbccb4d8",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 120,
+        "y": 200,
+        "wires": [
+            [
+                "101a5160107bcd39"
+            ]
+        ]
+    },
+    {
+        "id": "101a5160107bcd39",
+        "type": "function",
+        "z": "ee7b0e1cfa698443",
+        "name": "function 1",
+        "func": "if (msg.payload) {\n    try {\n        // Décoder la chaîne Base64\n        let decodedText = Buffer.from(msg.payload.frmPayload, 'base64').toString('utf-8');\n\n        // Ignorer les quatre premiers caractères\n        decodedText = decodedText.substring(4);\n\n        // Diviser la chaîne en utilisant la virgule comme séparateur\n        let values = decodedText.split(',');\n\n        // Stocker les valeurs sous forme de variables\n        let temperature = parseFloat(values[0]);\n        let pression = parseFloat(values[1]);\n        let altitude = parseFloat(values[2]);\n        let humidite = parseFloat(values[3]);\n\n        // Définir la requête SQL dans msg.topic (ATTENTION : PAS msg.payload)\n        msg.topic = \"INSERT INTO mesures (temperature, pression, altitude, humidite, timestamp) VALUES (?, ?, ?, ?, NOW())\";\n\n        // Placer les valeurs dans msg.payload sous forme de tableau (paramètres pour SQL)\n        msg.payload = [temperature, pression, altitude, humidite];\n    } catch (error) {\n        msg.payload = \"Erreur de décodage Base64 : \" + error.message;\n    }\n} else {\n    msg.payload = \"Aucune entrée fournie\";\n}\n\n// Retourner l'objet message\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 280,
+        "y": 200,
+        "wires": [
+            [
+                "e3968c728277ad46",
+                "61f8a7144541ad53",
+                "f039964eeafcb578"
+            ]
+        ]
+    },
+    {
+        "id": "e3968c728277ad46",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "fa4bef3d54e5c7d3",
+        "name": "Db_Capteurs",
+        "x": 640,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fbb525ce588dc41f",
+        "type": "mysql",
+        "z": "ee7b0e1cfa698443",
+        "mydb": "fa4bef3d54e5c7d3",
+        "name": "Récupérer risque",
+        "x": 470,
+        "y": 380,
+        "wires": [
+            [
+                "a23e2c86564f8eac"
+            ]
+        ]
+    },
+    {
+        "id": "61f8a7144541ad53",
+        "type": "debug",
+        "z": "ee7b0e1cfa698443",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 440,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "f039964eeafcb578",
+        "type": "websocket out",
+        "z": "ee7b0e1cfa698443",
+        "name": "Sortie infos",
+        "server": "2a3f8dd9173080e7",
+        "client": "",
+        "x": 450,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "8456d69b1759db98",
+        "type": "websocket out",
+        "z": "ee7b0e1cfa698443",
+        "name": "Sortie infos",
+        "server": "2a3f8dd9173080e7",
+        "client": "",
+        "x": 450,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "ccaa13e957f12c27",
+        "type": "debug",
+        "z": "ee7b0e1cfa698443",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 220,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "mqtt_broker",
+        "type": "mqtt-broker",
+        "name": "Team_26",
+        "broker": "mqtt://unica.ovh",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "compatmode": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "1e59c2bc3dbb5b44",
+        "type": "MySQLdatabase",
+        "name": "Db_Capteurs",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "capteurs",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "ff64b57162a87276",
+        "type": "telegram bot",
+        "botname": "temp_isen_bot",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "4c1df0f0cbccb4d8",
+        "type": "mqtt-broker",
+        "name": "Team_21",
+        "broker": "mqtt://unica.ovh",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "fa4bef3d54e5c7d3",
+        "type": "MySQLdatabase",
+        "name": "Db_Capteurs2",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "capteurs2",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "2a3f8dd9173080e7",
+        "type": "websocket-listener",
+        "path": "/ws",
+        "wholemsg": "false"
+    }
+]
